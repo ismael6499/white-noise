@@ -68,62 +68,51 @@ public class SoundCatalog {
 
         registerPreset(new Preset(PRESET_SUMMER_NIGHT, R.string.preset_summer_night, R.drawable.summer_night)
                 .addSound("summer_night", 80)
-                .addSound("cicadas", 55)
-                .addSound("frogs", 35)
-                .addSound("wind", 30));
+                .addSound("cicadas", 50)
+                .addSound("wind", 25));
 
         registerPreset(new Preset(PRESET_IN_FOREST, R.string.preset_in_forest, R.drawable.water_stream)
                 .addSound("water_stream", 75)
-                .addSound("bird", 65)
-                .addSound("leaves", 50)
-                .addSound("wind", 35));
+                .addSound("bird", 60)
+                .addSound("leaves", 45));
 
         registerPreset(new Preset(PRESET_RAINING_FROGS, R.string.preset_raining_frogs, R.drawable.frogs)
                 .addSound("rain", 75)
-                .addSound("frogs", 60)
-                .addSound("thunder", 40));
+                .addSound("frogs", 60));
 
         registerPreset(new Preset(PRESET_RAIN, R.string.preset_rain, R.drawable.rain)
                 .addSound("rain", 80)
-                .addSound("thunder", 50)
-                .addSound("wind", 35));
+                .addSound("thunder", 40)
+                .addSound("wind", 30));
 
         registerPreset(new Preset(PRESET_FIREPLACE, R.string.preset_fireplace, R.drawable.fireplace)
                 .addSound("fireplace", 85)
-                .addSound("wind", 40)
-                .addSound("piano", 35));
+                .addSound("wind", 30));
 
         registerPreset(new Preset(PRESET_WIND_CHIMES, R.string.preset_wind_chimes, R.drawable.wind_chimes)
                 .addSound("wind_chimes", 80)
-                .addSound("wind", 55)
-                .addSound("water_stream", 45));
+                .addSound("wind", 40));
 
         registerPreset(new Preset(PRESET_WHITE_NOISE, R.string.preset_white_noise, R.drawable.white_noise)
-                .addSound("white_noise", 75)
-                .addSound("fan", 50));
+                .addSound("white_noise", 85));
 
         registerPreset(new Preset(PRESET_PINK_NOISE, R.string.preset_pink_noise, R.drawable.pink_noise)
-                .addSound("pink_noise", 75)
-                .addSound("fan", 50));
+                .addSound("pink_noise", 85));
 
         registerPreset(new Preset(PRESET_BROWN_NOISE, R.string.preset_brown_noise, R.drawable.brown_noise)
-                .addSound("brown_noise", 80)
-                .addSound("fan", 45));
+                .addSound("brown_noise", 85));
 
         registerPreset(new Preset(PRESET_SEA_SIDE, R.string.preset_sea_side, R.drawable.sea_side)
                 .addSound("sea_side", 85)
-                .addSound("wind", 40)
-                .addSound("whales", 30));
+                .addSound("wind", 35));
 
         registerPreset(new Preset(PRESET_DEEP_FOCUS, R.string.preset_deep_focus, R.drawable.keyboard)
-                .addSound("keyboard", 60)
-                .addSound("crowd", 45)
-                .addSound("rain", 40));
+                .addSound("keyboard", 65)
+                .addSound("crowd", 40)
+                .addSound("rain", 35));
 
         registerPreset(new Preset(PRESET_LULLABY, R.string.preset_lullaby, R.drawable.music_box)
-                .addSound("music_box", 80)
-                .addSound("piano", 60)
-                .addSound("wind_chimes", 35));
+                .addSound("music_box", 85));
     }
 
     private static void registerSound(String id, int nameResId, int iconResId, int rawResId) {
