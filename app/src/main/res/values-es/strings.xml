@@ -14,11 +14,22 @@
     <string name="timer_badge_format">%1$02d:%2$02d</string>
     <string name="presets">Ajustes Rápidos</string>
     <string name="preset_all">Todos</string>
-    <string name="preset_sailing_sea">Barco y Océano</string>
-    <string name="preset_cozy_rain">Lluvia Agradable</string>
-    <string name="preset_deep_focus">Sueño Profundo</string>
-    <string name="preset_mystic_night">Noche Mística</string>
-    <string name="preset_cabin_fire">Chimenea en Cabaña</string>
+
+    <!-- Presets Originales y Ampliados -->
+    <string name="preset_sailing_on_sea">Barco en el Mar</string>
+    <string name="preset_summer_night">Noche de Verano</string>
+    <string name="preset_in_forest">En el Bosque</string>
+    <string name="preset_raining_frogs">Lluvia y Ranas</string>
+    <string name="preset_rain">Lluvia y Tormenta</string>
+    <string name="preset_fireplace">Chimenea</string>
+    <string name="preset_wind_chimes">Campanillas de Viento</string>
+    <string name="preset_white_noise">Ruido Blanco</string>
+    <string name="preset_pink_noise">Ruido Rosa</string>
+    <string name="preset_brown_noise">Ruido Marrón</string>
+    <string name="preset_sea_side">Brisa del Océano</string>
+    <string name="preset_deep_focus">Concentración y Estudio</string>
+    <string name="preset_lullaby">Caja de Música y Cuna</string>
+
     <string name="save_preset">Guardar Mezcla Actual</string>
     <string name="save_preset_title">Guardar Mezcla</string>
     <string name="save_preset_hint">Nombre de la mezcla</string>

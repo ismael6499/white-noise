@@ -4,13 +4,33 @@ Clean native Android audio mixer app built with pure Java, Material Components, 
 
 ---
 
+## Presets / Relaxation Templates
+
+The app includes all 10 authentic original presets plus 3 extended atmospheric mixes:
+
+1. **Sailing Ship on Sea (`sailing_on_sea`):** Sailing Ship (80%) + Ocean Waves (65%) *(Your favorite!)*
+2. **Summer Night (`summer_night`):** Summer Night (80%) + Cicadas (55%) + Frogs (35%) + Wind (30%)
+3. **In Forest (`in_forest`):** Water Stream (75%) + Birds (65%) + Rustling Leaves (50%) + Wind (35%)
+4. **Raining Frogs (`raining_frogs`):** Rain (75%) + Frogs (60%) + Thunder (40%)
+5. **Raining (`rain`):** Rain (80%) + Thunder (50%) + Wind (35%)
+6. **Fireplace (`fireplace`):** Fireplace (85%) + Wind (40%) + Soft Piano (35%)
+7. **Wind Chimes (`wind_chimes`):** Wind Chimes (80%) + Wind (55%) + Water Stream (45%)
+8. **White Noise (`white_noise`):** White Noise (75%) + Fan (50%)
+9. **Pink Noise (`pink_noise`):** Pink Noise (75%) + Fan (50%)
+10. **Brown Noise (`brown_noise`):** Brown Noise (80%) + Fan (45%)
+11. **Ocean Breeze (`sea_side`):** Ocean Waves (85%) + Wind (40%) + Whales (30%)
+12. **Focus & Study (`deep_focus`):** Keyboard (60%) + Cafe Crowd (45%) + Rain (40%)
+13. **Music Box & Lullaby (`lullaby`):** Music Box (80%) + Soft Piano (60%) + Wind Chimes (35%)
+
+---
+
 ## Tasker / Automation Intent Actions
 
 The app exposes `com.agustin.whitenoise.receiver.TaskerReceiver` which accepts standard Android Broadcast Intents from Tasker, MacroDroid, or Automate.
 
 ### 1. Play / Resume
 * **Action:** `com.agustin.whitenoise.ACTION_PLAY`
-* Resumes currently active sounds. If no sounds are active, starts the **Sailing & Ocean** favorite preset.
+* Resumes currently active sounds. If no sounds are active, starts the **Sailing Ship on Sea** favorite preset.
 
 ### 2. Pause
 * **Action:** `com.agustin.whitenoise.ACTION_PAUSE`
@@ -26,16 +46,11 @@ The app exposes `com.agustin.whitenoise.receiver.TaskerReceiver` which accepts s
 ### 5. Play Preset
 * **Action:** `com.agustin.whitenoise.ACTION_PLAY_PRESET`
 * **Extra (String):** `preset`
-* **Available Presets:**
-  * `sailing_sea` &rarr; Sailing Ship (80%) + Ocean Waves (65%) *(Your favorite!)*
-  * `cozy_rain` &rarr; Rain (75%) + Thunder (45%) + Wind (30%)
-  * `deep_focus` &rarr; Brown Noise (60%) + Fan (50%)
-  * `mystic_night` &rarr; Summer Night (70%) + Cicadas (40%) + Whales (35%)
-  * `cabin_fire` &rarr; Fireplace (80%) + Wind (40%)
+* Any preset ID listed above (e.g. `sailing_on_sea`, `summer_night`, `in_forest`, `raining_frogs`, etc.).
 
 ### 6. Control Individual Track & Volume
 * **Action:** `com.agustin.whitenoise.ACTION_SET_TRACK`
-* **Extra (String):** `track` &rarr; Sound ID (e.g., `sailing`, `sea_side`, `rain`, etc.)
+* **Extra (String):** `track` &rarr; Sound ID (e.g., `sailing`, `sea_side`, `summer_night`, `rain`, etc.)
 * **Extra (boolean):** `enabled` &rarr; `true` or `false`
 * **Extra (int):** `volume` &rarr; `0` to `100` (e.g. `80`)
 

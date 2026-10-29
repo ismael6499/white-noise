@@ -14,11 +14,22 @@
     <string name="timer_badge_format">%1$02d:%2$02d</string>
     <string name="presets">Presets</string>
     <string name="preset_all">All Sounds</string>
-    <string name="preset_sailing_sea">Sailing &amp; Ocean</string>
-    <string name="preset_cozy_rain">Cozy Rain</string>
-    <string name="preset_deep_focus">Deep Sleep</string>
-    <string name="preset_mystic_night">Mystic Night</string>
-    <string name="preset_cabin_fire">Cabin Fireplace</string>
+
+    <!-- Original & Extended Presets -->
+    <string name="preset_sailing_on_sea">Sailing Ship on Sea</string>
+    <string name="preset_summer_night">Summer Night</string>
+    <string name="preset_in_forest">In Forest</string>
+    <string name="preset_raining_frogs">Raining Frogs</string>
+    <string name="preset_rain">Raining</string>
+    <string name="preset_fireplace">Fireplace</string>
+    <string name="preset_wind_chimes">Wind Chimes</string>
+    <string name="preset_white_noise">White Noise</string>
+    <string name="preset_pink_noise">Pink Noise</string>
+    <string name="preset_brown_noise">Brown Noise</string>
+    <string name="preset_sea_side">Ocean Breeze</string>
+    <string name="preset_deep_focus">Focus &amp; Study</string>
+    <string name="preset_lullaby">Music Box &amp; Lullaby</string>
+
     <string name="save_preset">Save Current Mix</string>
     <string name="save_preset_title">Save Preset</string>
     <string name="save_preset_hint">Preset Name</string>

@@ -128,11 +128,24 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
     }
 
     private void setupPresets() {
-        findViewById(R.id.chipPresetSailingSea).setOnClickListener(v -> loadPreset(SoundCatalog.PRESET_SAILING_SEA));
-        findViewById(R.id.chipPresetCozyRain).setOnClickListener(v -> loadPreset(SoundCatalog.PRESET_COZY_RAIN));
-        findViewById(R.id.chipPresetDeepFocus).setOnClickListener(v -> loadPreset(SoundCatalog.PRESET_DEEP_FOCUS));
-        findViewById(R.id.chipPresetMysticNight).setOnClickListener(v -> loadPreset(SoundCatalog.PRESET_MYSTIC_NIGHT));
-        findViewById(R.id.chipPresetCabinFire).setOnClickListener(v -> loadPreset(SoundCatalog.PRESET_CABIN_FIRE));
+        chipGroupPresets.removeAllViews();
+
+        // Populate all built-in presets dynamically
+        for (Preset preset : SoundCatalog.getBuiltInPresets()) {
+            Chip chip = new Chip(this);
+            chip.setText(preset.getNameResId());
+            chip.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            chip.setChipBackgroundColorResource(R.color.chip_bg);
+            chip.setChipStrokeColorResource(R.color.accent_blue);
+            chip.setChipStrokeWidth(1f);
+            if (preset.getIconResId() != 0) {
+                chip.setChipIconResource(preset.getIconResId());
+                chip.setChipIconTintResource(R.color.accent_blue);
+            }
+            chip.setCheckable(true);
+            chip.setOnClickListener(v -> loadPreset(preset.getId()));
+            chipGroupPresets.addView(chip);
+        }
 
         loadCustomPresetChips();
     }
@@ -221,7 +234,8 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
             playerService.loadPresetAndPlay(presetId);
             Preset p = SoundCatalog.getBuiltInPreset(presetId);
             if (p != null) {
-                Toast.makeText(this, getString(R.string.preset_loaded, p.getName()), Toast.LENGTH_SHORT).show();
+                String name = p.getNameResId() != 0 ? getString(p.getNameResId()) : p.getName();
+                Toast.makeText(this, getString(R.string.preset_loaded, name), Toast.LENGTH_SHORT).show();
             }
         }
     }

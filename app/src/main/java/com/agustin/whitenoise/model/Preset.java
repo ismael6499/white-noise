@@ -1,14 +1,24 @@
 package com.agustin.whitenoise.model;
 
-import java.util.HashMap;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.StringRes;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Preset {
     private String id;
-    private String name;
-    private Map<String, Integer> soundVolumes = new HashMap<>();
+    private @StringRes int nameResId;
+    private @DrawableRes int iconResId;
+    private String name; // Used for custom user-created presets
+    private Map<String, Integer> soundVolumes = new LinkedHashMap<>();
 
     public Preset() {
+    }
+
+    public Preset(String id, @StringRes int nameResId, @DrawableRes int iconResId) {
+        this.id = id;
+        this.nameResId = nameResId;
+        this.iconResId = iconResId;
     }
 
     public Preset(String id, String name) {
@@ -22,6 +32,22 @@ public class Preset {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getNameResId() {
+        return nameResId;
+    }
+
+    public void setNameResId(int nameResId) {
+        this.nameResId = nameResId;
+    }
+
+    public int getIconResId() {
+        return iconResId;
+    }
+
+    public void setIconResId(int iconResId) {
+        this.iconResId = iconResId;
     }
 
     public String getName() {

@@ -91,63 +91,7 @@
                 android:layout_height="wrap_content"
                 app:singleLine="true"
                 app:singleSelection="true">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPresetSailingSea"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preset_sailing_sea"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/chip_bg"
-                    app:chipIcon="@drawable/sailing"
-                    app:chipIconTint="@color/accent_blue"
-                    app:chipStrokeColor="@color/accent_blue"
-                    app:chipStrokeWidth="1dp" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPresetCozyRain"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preset_cozy_rain"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/chip_bg"
-                    app:chipIcon="@drawable/rain"
-                    app:chipIconTint="@color/accent_blue" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPresetDeepFocus"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preset_deep_focus"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/chip_bg"
-                    app:chipIcon="@drawable/brown_noise"
-                    app:chipIconTint="@color/accent_blue" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPresetMysticNight"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preset_mystic_night"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/chip_bg"
-                    app:chipIcon="@drawable/summer_night"
-                    app:chipIconTint="@color/accent_blue" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPresetCabinFire"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preset_cabin_fire"
-                    android:textColor="@color/text_primary"
-                    app:chipBackgroundColor="@color/chip_bg"
-                    app:chipIcon="@drawable/fireplace"
-                    app:chipIconTint="@color/accent_blue" />
+                <!-- Dynamically populated with all presets -->
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
