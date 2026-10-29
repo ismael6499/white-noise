@@ -9,18 +9,18 @@ Clean native Android audio mixer app built with pure Java, Material Components, 
 The app includes all 10 authentic original presets plus 3 extended atmospheric mixes:
 
 1. **Sailing Ship on Sea (`sailing_on_sea`):** Sailing Ship (80%) + Ocean Waves (65%) *(Your favorite!)*
-2. **Summer Night (`summer_night`):** Summer Night (80%) + Cicadas (50%) + Wind (25%)
-3. **In Forest (`in_forest`):** Water Stream (75%) + Birds (60%) + Rustling Leaves (45%)
-4. **Raining Frogs (`raining_frogs`):** Rain (75%) + Frogs (60%)
-5. **Raining (`rain`):** Rain (80%) + Thunder (40%) + Wind (30%)
-6. **Fireplace (`fireplace`):** Fireplace (85%) + Wind (30%)
-7. **Wind Chimes (`wind_chimes`):** Wind Chimes (80%) + Wind (40%)
-8. **White Noise (`white_noise`):** Pure White Noise (85%)
-9. **Pink Noise (`pink_noise`):** Pure Pink Noise (85%)
-10. **Brown Noise (`brown_noise`):** Pure Brown Noise (85%)
-11. **Ocean Breeze (`sea_side`):** Ocean Waves (85%) + Wind (35%)
-12. **Focus & Study (`deep_focus`):** Keyboard (65%) + Cafe Crowd (40%) + Rain (35%)
-13. **Music Box (`lullaby`):** Pure Music Box (85%)
+2. **Summer Night (`summer_night`):** Summer Night (80%) + Cicadas (55%) + Frogs (35%) + Wind (30%)
+3. **In Forest (`in_forest`):** Water Stream (75%) + Birds (65%) + Rustling Leaves (50%) + Wind (35%)
+4. **Raining Frogs (`raining_frogs`):** Rain (75%) + Frogs (60%) + Thunder (40%)
+5. **Raining (`rain`):** Rain (80%) + Thunder (50%) + Wind (35%)
+6. **Fireplace (`fireplace`):** Fireplace (85%) + Wind (40%)
+7. **Wind Chimes (`wind_chimes`):** Wind Chimes (80%) + Wind (55%) + Water Stream (45%)
+8. **White Noise (`white_noise`):** White Noise (75%) + Fan (50%)
+9. **Pink Noise (`pink_noise`):** Pink Noise (75%) + Fan (50%)
+10. **Brown Noise (`brown_noise`):** Brown Noise (80%) + Fan (45%)
+11. **Ocean Breeze (`sea_side`):** Ocean Waves (85%) + Wind (40%) + Whales (30%)
+12. **Focus & Study (`deep_focus`):** Keyboard (60%) + Cafe Crowd (45%) + Rain (40%)
+13. **Music Box & Lullaby (`lullaby`):** Music Box (85%) + Wind Chimes (40%)
 
 ---
 

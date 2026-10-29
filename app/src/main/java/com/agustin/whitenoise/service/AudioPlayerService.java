@@ -5,8 +5,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioAttributes;
-import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -18,7 +16,6 @@ import com.agustin.whitenoise.WhiteNoiseApp;
 import com.agustin.whitenoise.model.Preset;
 import com.agustin.whitenoise.model.SoundCatalog;
 import com.agustin.whitenoise.model.SoundItem;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +48,7 @@ public class AudioPlayerService extends Service {
     private static final long FADEOUT_DURATION_MS = 10_000L;
 
     private final IBinder binder = new LocalBinder();
-    private final Map<String, MediaPlayer> players = new HashMap<>();
+    private final Map<String, SmoothAudioTrack> activeTracks = new HashMap<>();
     private final Map<String, Integer> volumes = new HashMap<>();
 
     private boolean isPlaying = false;
@@ -128,32 +125,27 @@ public class AudioPlayerService extends Service {
     public synchronized void setTrackState(String soundId, boolean enabled, int volume) {
         volumes.put(soundId, volume);
         if (enabled) {
-            MediaPlayer mp = players.get(soundId);
-            if (mp == null) {
-                mp = createPlayer(soundId);
-                if (mp != null) {
-                    players.put(soundId, mp);
+            SmoothAudioTrack track = activeTracks.get(soundId);
+            if (track == null) {
+                SoundItem item = SoundCatalog.getSoundById(soundId);
+                if (item != null) {
+                    track = new SmoothAudioTrack(this, soundId, item.getRawResId(), volume);
+                    activeTracks.put(soundId, track);
                 }
             }
-            if (mp != null) {
-                applyVolume(mp, volume);
-                if (!mp.isPlaying()) {
-                    mp.start();
+            if (track != null) {
+                track.setVolume(volume);
+                if (!track.isPlaying()) {
+                    track.start();
                 }
             }
             isPlaying = true;
         } else {
-            MediaPlayer mp = players.remove(soundId);
-            if (mp != null) {
-                try {
-                    if (mp.isPlaying()) {
-                        mp.stop();
-                    }
-                    mp.release();
-                } catch (Exception ignored) {
-                }
+            SmoothAudioTrack track = activeTracks.remove(soundId);
+            if (track != null) {
+                track.release();
             }
-            if (players.isEmpty()) {
+            if (activeTracks.isEmpty()) {
                 isPlaying = false;
             }
         }
@@ -163,25 +155,21 @@ public class AudioPlayerService extends Service {
 
     public synchronized void updateTrackVolume(String soundId, int volume) {
         volumes.put(soundId, volume);
-        MediaPlayer mp = players.get(soundId);
-        if (mp != null) {
-            applyVolume(mp, volume);
+        SmoothAudioTrack track = activeTracks.get(soundId);
+        if (track != null) {
+            track.setVolume(volume);
         }
         broadcastState();
     }
 
     public synchronized void resumeOrStartAll() {
-        if (players.isEmpty()) {
-            // Default favorite if nothing is selected: Sailing & Sea Side
+        if (activeTracks.isEmpty()) {
             loadPresetAndPlay(SoundCatalog.PRESET_SAILING_SEA);
             return;
         }
-        for (Map.Entry<String, MediaPlayer> entry : players.entrySet()) {
-            MediaPlayer mp = entry.getValue();
-            if (mp != null && !mp.isPlaying()) {
-                int vol = volumes.getOrDefault(entry.getKey(), 70);
-                applyVolume(mp, vol);
-                mp.start();
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null && !track.isPlaying()) {
+                track.start();
             }
         }
         isPlaying = true;
@@ -190,9 +178,9 @@ public class AudioPlayerService extends Service {
     }
 
     public synchronized void pauseAll() {
-        for (MediaPlayer mp : players.values()) {
-            if (mp != null && mp.isPlaying()) {
-                mp.pause();
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null && track.isPlaying()) {
+                track.pause();
             }
         }
         isPlaying = false;
@@ -202,18 +190,12 @@ public class AudioPlayerService extends Service {
 
     public synchronized void stopAll() {
         cancelSleepTimer();
-        for (MediaPlayer mp : players.values()) {
-            if (mp != null) {
-                try {
-                    if (mp.isPlaying()) {
-                        mp.stop();
-                    }
-                    mp.release();
-                } catch (Exception ignored) {
-                }
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null) {
+                track.release();
             }
         }
-        players.clear();
+        activeTracks.clear();
         isPlaying = false;
         stopForeground(true);
         stopSelf();
@@ -226,60 +208,28 @@ public class AudioPlayerService extends Service {
             return;
         }
         // Stop current sounds
-        for (MediaPlayer mp : players.values()) {
-            try {
-                if (mp.isPlaying()) mp.stop();
-                mp.release();
-            } catch (Exception ignored) {
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null) {
+                track.release();
             }
         }
-        players.clear();
+        activeTracks.clear();
 
-        // Start preset sounds
+        // Start preset sounds with smooth loop tracks
         for (Map.Entry<String, Integer> entry : preset.getSoundVolumes().entrySet()) {
             String sid = entry.getKey();
             int vol = entry.getValue();
             volumes.put(sid, vol);
-            MediaPlayer mp = createPlayer(sid);
-            if (mp != null) {
-                applyVolume(mp, vol);
-                mp.start();
-                players.put(sid, mp);
+            SoundItem item = SoundCatalog.getSoundById(sid);
+            if (item != null) {
+                SmoothAudioTrack track = new SmoothAudioTrack(this, sid, item.getRawResId(), vol);
+                track.start();
+                activeTracks.put(sid, track);
             }
         }
-        isPlaying = !players.isEmpty();
+        isPlaying = !activeTracks.isEmpty();
         updateForegroundState();
         broadcastState();
-    }
-
-    private MediaPlayer createPlayer(String soundId) {
-        SoundItem item = SoundCatalog.getSoundById(soundId);
-        if (item == null) return null;
-
-        try {
-            MediaPlayer mp = MediaPlayer.create(this, item.getRawResId());
-            if (mp != null) {
-                mp.setAudioAttributes(new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build());
-                mp.setLooping(true);
-            }
-            return mp;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void applyVolume(MediaPlayer mp, int volumePercent) {
-        if (mp == null) return;
-        float linear = Math.max(0f, Math.min(100f, volumePercent)) / 100f;
-        // Natural audio curve
-        float curve = linear * linear;
-        try {
-            mp.setVolume(curve, curve);
-        } catch (Exception ignored) {
-        }
     }
 
     public void startSleepTimer(int minutes) {
@@ -321,24 +271,24 @@ public class AudioPlayerService extends Service {
         isTimerActive = false;
         timerRemainingMs = 0;
         // Restore standard volume in case it was in fadeout
-        for (Map.Entry<String, MediaPlayer> entry : players.entrySet()) {
+        for (Map.Entry<String, SmoothAudioTrack> entry : activeTracks.entrySet()) {
             int vol = volumes.getOrDefault(entry.getKey(), 70);
-            applyVolume(entry.getValue(), vol);
+            entry.getValue().setVolume(vol);
         }
         updateForegroundState();
         broadcastState();
     }
 
     private void applyFadeoutFactor(float factor) {
-        for (Map.Entry<String, MediaPlayer> entry : players.entrySet()) {
-            int originalVol = volumes.getOrDefault(entry.getKey(), 70);
-            int fadedVol = Math.round(originalVol * factor);
-            applyVolume(entry.getValue(), fadedVol);
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null) {
+                track.applyExternalFadeFactor(factor);
+            }
         }
     }
 
     private void updateForegroundState() {
-        if (players.isEmpty() && !isPlaying) {
+        if (activeTracks.isEmpty() && !isPlaying) {
             stopForeground(true);
             return;
         }
@@ -390,12 +340,12 @@ public class AudioPlayerService extends Service {
     }
 
     public String getActiveSoundsSummary() {
-        if (players.isEmpty()) {
+        if (activeTracks.isEmpty()) {
             return getString(R.string.active_sounds_none);
         }
         StringBuilder sb = new StringBuilder();
         int count = 0;
-        for (String id : players.keySet()) {
+        for (String id : activeTracks.keySet()) {
             SoundItem item = SoundCatalog.getSoundById(id);
             if (item != null) {
                 if (count > 0) sb.append(", ");
@@ -408,7 +358,7 @@ public class AudioPlayerService extends Service {
 
     public synchronized Map<String, Integer> getActiveSoundsWithVolume() {
         Map<String, Integer> map = new HashMap<>();
-        for (String id : players.keySet()) {
+        for (String id : activeTracks.keySet()) {
             map.put(id, volumes.getOrDefault(id, 70));
         }
         return map;
@@ -419,7 +369,7 @@ public class AudioPlayerService extends Service {
     }
 
     public boolean isTrackActive(String soundId) {
-        return players.containsKey(soundId);
+        return activeTracks.containsKey(soundId);
     }
 
     public int getTrackVolume(String soundId) {
@@ -438,7 +388,7 @@ public class AudioPlayerService extends Service {
         Intent intent = new Intent(BROADCAST_STATE_CHANGED);
         intent.setPackage(getPackageName());
         intent.putExtra(EXTRA_STATE_PLAYING, isPlaying);
-        intent.putExtra(EXTRA_STATE_ACTIVE_COUNT, players.size());
+        intent.putExtra(EXTRA_STATE_ACTIVE_COUNT, activeTracks.size());
         intent.putExtra(EXTRA_STATE_SUMMARY, getActiveSoundsSummary());
         intent.putExtra(EXTRA_STATE_TIMER_MS, timerRemainingMs);
         intent.putExtra(EXTRA_STATE_TIMER_ACTIVE, isTimerActive);
