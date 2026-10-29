@@ -1,0 +1,72 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.agustin.whitenoise'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.agustin.whitenoise"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        appSign {
+            storeFile file("keystore.jks")
+            storePassword "whitenoise"
+            keyAlias "whitenoise"
+            keyPassword "whitenoise"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.appSign
+        }
+        release {
+            signingConfig signingConfigs.appSign
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.media:media:1.7.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+android.applicationVariants.all { variant ->
+    variant.outputs.all { output ->
+        def mobileDropDir = new File(System.getProperty("user.home"), "Documents/Mobile Drop")
+        if (mobileDropDir.exists()) {
+            def copyTask = tasks.register("copy${variant.name.capitalize()}ToMobileDrop", Copy) {
+                from output.outputFile
+                into mobileDropDir
+                rename { String fileName -> "WhiteNoise-v${variant.versionName}.apk" }
+                doLast {
+                    def genericFile = new File(mobileDropDir, "WhiteNoise.apk")
+                    def source = new File(mobileDropDir, "WhiteNoise-v${variant.versionName}.apk")
+                    if (source.exists()) {
+                        java.nio.file.Files.copy(source.toPath(), genericFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                    }
+                }
+            }
+            variant.assembleProvider.get().finalizedBy(copyTask)
+        }
+    }
+}

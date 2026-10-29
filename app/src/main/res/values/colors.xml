@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_primary">#0E131F</color>
+    <color name="bg_secondary">#182032</color>
+    <color name="bg_card">#1D263B</color>
+    <color name="bg_card_active">#253556</color>
+    <color name="accent_blue">#38BDF8</color>
+    <color name="accent_cyan">#22D3EE</color>
+    <color name="accent_glow">#4038BDF8</color>
+    <color name="accent_green">#34D399</color>
+    <color name="text_primary">#F1F5F9</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+    <color name="slider_track">#334155</color>
+    <color name="bottom_bar_bg">#141C2E</color>
+    <color name="danger">#F87171</color>
+    <color name="chip_bg">#25334E</color>
+    <color name="chip_selected_bg">#0284C7</color>
+</resources>

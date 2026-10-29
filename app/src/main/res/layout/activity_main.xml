@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bg_secondary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="12dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_logo" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/subtitle_mixer"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Timer Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTimer"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sleep_timer"
+                android:textColor="@color/accent_blue"
+                android:textSize="12sp"
+                app:icon="@drawable/ic_timer"
+                app:iconTint="@color/accent_blue" />
+
+            <!-- Save Preset Button -->
+            <ImageButton
+                android:id="@+id/btnSavePreset"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/save_preset"
+                android:src="@drawable/ic_save"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Presets Horizontal Bar -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bg_secondary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupPresets"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPresetSailingSea"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/preset_sailing_sea"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/chip_bg"
+                    app:chipIcon="@drawable/sailing"
+                    app:chipIconTint="@color/accent_blue"
+                    app:chipStrokeColor="@color/accent_blue"
+                    app:chipStrokeWidth="1dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPresetCozyRain"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/preset_cozy_rain"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/chip_bg"
+                    app:chipIcon="@drawable/rain"
+                    app:chipIconTint="@color/accent_blue" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPresetDeepFocus"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/preset_deep_focus"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/chip_bg"
+                    app:chipIcon="@drawable/brown_noise"
+                    app:chipIconTint="@color/accent_blue" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPresetMysticNight"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/preset_mystic_night"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/chip_bg"
+                    app:chipIcon="@drawable/summer_night"
+                    app:chipIconTint="@color/accent_blue" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPresetCabinFire"
+                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/preset_cabin_fire"
+                    android:textColor="@color/text_primary"
+                    app:chipBackgroundColor="@color/chip_bg"
+                    app:chipIcon="@drawable/fireplace"
+                    app:chipIconTint="@color/accent_blue" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <!-- Sound Cards Grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerSounds"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="100dp"
+            tools:listitem="@layout/item_sound_card" />
+    </LinearLayout>
+
+    <!-- Bottom Sticky Player Control Bar -->
+    <LinearLayout
+        android:id="@+id/bottomPlayerBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_bottom_bar"
+        android:elevation="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvActiveSoundsSummary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/active_sounds_none"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTimerRemaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/accent_cyan"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="⏳ 28:45 remaining"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Stop All Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopAll"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/stop"
+            android:textColor="@color/danger"
+            app:icon="@drawable/ic_stop"
+            app:iconTint="@color/danger"
+            app:strokeColor="@color/danger" />
+
+        <!-- Master Play / Pause FAB -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabMasterPlayPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/play"
+            android:src="@drawable/ic_play"
+            app:backgroundTint="@color/accent_blue"
+            app:elevation="4dp"
+            app:fabSize="normal"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
