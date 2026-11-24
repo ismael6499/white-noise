@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.AlarmClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -35,11 +36,14 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSoundActionListener {
@@ -47,6 +51,10 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
     private static final int PERMISSION_REQ_NOTIFICATIONS = 1001;
     private static final String PREFS_NAME = "WhiteNoisePrefs";
     private static final String KEY_CUSTOM_PRESETS = "custom_presets";
+    private static final String KEY_TIMER_SLEEP_ALARM = "timer_with_sleep_alarm";
+    private static final String KEY_SLEEP_ALARM_SEQ = "sleep_alarm_seq_id";
+    private static final String SLEEP_PACKAGE = "com.urbandroid.sleep";
+    private static final String SLEEP_ADD_ALARM_ACTIVITY = "com.urbandroid.sleep.alarmclock.AddAlarmActivity";
 
     private RecyclerView recyclerSounds;
     private SoundAdapter soundAdapter;
@@ -296,35 +304,54 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
     }
 
     private void showSleepTimerDialog() {
-        String[] options = new String[]{
-                getString(R.string.timer_15m),
-                getString(R.string.timer_30m),
-                getString(R.string.timer_45m),
-                getString(R.string.timer_60m),
-                getString(R.string.timer_90m),
-                getString(R.string.timer_120m),
-                getString(R.string.timer_custom),
-                getString(R.string.timer_cancel)
-        };
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_sleep_timer, null);
+        View layoutSleepOption = view.findViewById(R.id.layoutSleepAlarmOption);
+        SwitchMaterial switchSleepAlarm = view.findViewById(R.id.switchSleepAlarm);
 
-        new MaterialAlertDialogBuilder(this)
+        boolean sleepInstalled = isSleepAppInstalled();
+        layoutSleepOption.setVisibility(sleepInstalled ? View.VISIBLE : View.GONE);
+        if (sleepInstalled) {
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            switchSleepAlarm.setChecked(prefs.getBoolean(KEY_TIMER_SLEEP_ALARM, false));
+            switchSleepAlarm.setOnCheckedChangeListener((buttonView, isChecked) ->
+                    prefs.edit().putBoolean(KEY_TIMER_SLEEP_ALARM, isChecked).apply());
+        }
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.sleep_timer)
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0: setTimer(15); break;
-                        case 1: setTimer(30); break;
-                        case 2: setTimer(45); break;
-                        case 3: setTimer(60); break;
-                        case 4: setTimer(90); break;
-                        case 5: setTimer(120); break;
-                        case 6: showCustomTimerDialog(); break;
-                        case 7: cancelTimer(); break;
-                    }
-                })
-                .show();
+                .setView(view)
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .create();
+
+        int[] btnIds = new int[]{
+                R.id.btnTimer15, R.id.btnTimer30, R.id.btnTimer45,
+                R.id.btnTimer60, R.id.btnTimer90, R.id.btnTimer120
+        };
+        int[] minutesValues = new int[]{15, 30, 45, 60, 90, 120};
+        for (int i = 0; i < btnIds.length; i++) {
+            final int mins = minutesValues[i];
+            view.findViewById(btnIds[i]).setOnClickListener(v -> {
+                boolean withAlarm = sleepInstalled && switchSleepAlarm.isChecked();
+                dialog.dismiss();
+                setTimer(mins, withAlarm);
+            });
+        }
+
+        view.findViewById(R.id.btnTimerCustom).setOnClickListener(v -> {
+            boolean withAlarm = sleepInstalled && switchSleepAlarm.isChecked();
+            dialog.dismiss();
+            showCustomTimerDialog(withAlarm);
+        });
+
+        view.findViewById(R.id.btnTimerDisable).setOnClickListener(v -> {
+            dialog.dismiss();
+            cancelTimer();
+        });
+
+        dialog.show();
     }
 
-    private void showCustomTimerDialog() {
+    private void showCustomTimerDialog(boolean withSleepAlarm) {
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_custom_timer, null);
         EditText et = view.findViewById(R.id.etCustomMinutes);
 
@@ -332,11 +359,13 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
                 .setTitle(R.string.timer_custom)
                 .setView(view)
                 .setPositiveButton(R.string.dialog_set, (dialog, which) -> {
-                    String val = et.getText().toString().trim();
+                    String val = et.getText() != null ? et.getText().toString().trim() : "";
                     if (!val.isEmpty()) {
                         try {
                             int mins = Integer.parseInt(val);
-                            setTimer(mins);
+                            if (mins > 0) {
+                                setTimer(mins, withSleepAlarm);
+                            }
                         } catch (Exception ignored) {
                         }
                     }
@@ -345,10 +374,59 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
                 .show();
     }
 
-    private void setTimer(int minutes) {
-        if (playerService != null) {
-            playerService.startSleepTimer(minutes);
+    private void setTimer(int minutes, boolean withSleepAlarm) {
+        if (playerService == null || minutes <= 0) return;
+
+        playerService.startSleepTimer(minutes);
+        if (withSleepAlarm) {
+            String alarmTime = createSleepAsAndroidAlarm(minutes);
+            if (alarmTime != null) {
+                Toast.makeText(this,
+                        getString(R.string.timer_with_sleep_alarm_toast, minutes, alarmTime),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, R.string.timer_sleep_alarm_failed, Toast.LENGTH_SHORT).show();
+            }
+        } else {
             Toast.makeText(this, getString(R.string.timer_active_format, minutes), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isSleepAppInstalled() {
+        try {
+            getPackageManager().getPackageInfo(SLEEP_PACKAGE, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private String createSleepAsAndroidAlarm(int offsetMinutes) {
+        int safeOffset = Math.max(1, Math.min(720, offsetMinutes));
+        Calendar target = Calendar.getInstance();
+        target.add(Calendar.MINUTE, safeOffset);
+
+        int hour = target.get(Calendar.HOUR_OF_DAY);
+        int minute = target.get(Calendar.MINUTE);
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int seqId = prefs.getInt(KEY_SLEEP_ALARM_SEQ, 0) + 1;
+        prefs.edit().putInt(KEY_SLEEP_ALARM_SEQ, seqId).apply();
+        String label = getString(R.string.timer_sleep_alarm_label_fmt, safeOffset, seqId);
+
+        Intent intent = new Intent(AlarmClock.ACTION_SET_ALARM);
+        intent.setComponent(new ComponentName(SLEEP_PACKAGE, SLEEP_ADD_ALARM_ACTIVITY));
+        intent.putExtra(AlarmClock.EXTRA_HOUR, hour);
+        intent.putExtra(AlarmClock.EXTRA_MINUTES, minute);
+        intent.putExtra(AlarmClock.EXTRA_MESSAGE, label);
+        intent.putExtra(AlarmClock.EXTRA_VIBRATE, true);
+        intent.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
+
+        try {
+            startActivity(intent);
+            return String.format(Locale.US, "%02d:%02d", hour, minute);
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -393,6 +471,7 @@ public class MainActivity extends AppCompatActivity implements SoundAdapter.OnSo
         prefs.edit().putString(KEY_CUSTOM_PRESETS, new Gson().toJson(customList)).apply();
 
         addCustomPresetChip(preset);
+        AudioPlayerService.notifyExternalStateChanged(this);
         Toast.makeText(this, R.string.preset_saved, Toast.LENGTH_SHORT).show();
     }
 

@@ -26,6 +26,8 @@ public class SmoothAudioTrack {
     private boolean isPlayerACurrent = true;
     private boolean isPlaying = false;
     private int volumePercent = 70;
+    private float masterScale = 1.0f;
+    private float fadeFactor = 1.0f;
     private int durationMs = 0;
     private int crossfadeMs = DEFAULT_CROSSFADE_MS;
 
@@ -85,7 +87,7 @@ public class SmoothAudioTrack {
 
         MediaPlayer current = isPlayerACurrent ? playerA : playerB;
         if (current != null) {
-            float baseVol = getScaledVolume(volumePercent);
+            float baseVol = getEffectiveScaledVolume();
             setPlayerVolume(current, baseVol);
             try {
                 if (!current.isPlaying()) {
@@ -113,30 +115,31 @@ public class SmoothAudioTrack {
 
     public synchronized void setVolume(int volume) {
         this.volumePercent = Math.max(0, Math.min(100, volume));
-        if (!isPlaying) return;
+        refreshActiveVolume();
+    }
 
-        if (isCrossfading) {
-            long elapsed = System.currentTimeMillis() - crossfadeStartTime;
-            float progress = Math.min(1.0f, (float) elapsed / crossfadeMs);
-            applyCrossfadeVolumes(progress);
-        } else {
-            MediaPlayer current = isPlayerACurrent ? playerA : playerB;
-            if (current != null) {
-                setPlayerVolume(current, getScaledVolume(volumePercent));
-            }
-        }
+    public synchronized void setMasterScale(float scale) {
+        this.masterScale = Math.max(0f, Math.min(1f, scale));
+        refreshActiveVolume();
     }
 
     public synchronized void applyExternalFadeFactor(float factor) {
-        float targetScaled = getScaledVolume(Math.round(volumePercent * factor));
+        this.fadeFactor = Math.max(0f, Math.min(1f, factor));
+        refreshActiveVolume();
+    }
+
+    private void refreshActiveVolume() {
+        if (!isPlaying) return;
+
+        float baseVol = getEffectiveScaledVolume();
         if (isCrossfading) {
             long elapsed = System.currentTimeMillis() - crossfadeStartTime;
             float progress = Math.min(1.0f, (float) elapsed / crossfadeMs);
-            applyCrossfadeVolumesWithBase(progress, targetScaled);
+            applyCrossfadeVolumesWithBase(progress, baseVol);
         } else {
             MediaPlayer current = isPlayerACurrent ? playerA : playerB;
             if (current != null) {
-                setPlayerVolume(current, targetScaled);
+                setPlayerVolume(current, baseVol);
             }
         }
     }
@@ -200,7 +203,7 @@ public class SmoothAudioTrack {
         MediaPlayer outgoing = isPlayerACurrent ? playerA : playerB;
         MediaPlayer incoming = isPlayerACurrent ? playerB : playerA;
 
-        float fullVol = getScaledVolume(volumePercent);
+        float fullVol = getEffectiveScaledVolume();
         if (incoming != null) {
             setPlayerVolume(incoming, fullVol);
         }
@@ -218,7 +221,7 @@ public class SmoothAudioTrack {
     }
 
     private void applyCrossfadeVolumes(float progress) {
-        applyCrossfadeVolumesWithBase(progress, getScaledVolume(volumePercent));
+        applyCrossfadeVolumesWithBase(progress, getEffectiveScaledVolume());
     }
 
     private void applyCrossfadeVolumesWithBase(float progress, float baseVol) {
@@ -273,8 +276,8 @@ public class SmoothAudioTrack {
         }
     }
 
-    private float getScaledVolume(int percent) {
-        float linear = Math.max(0f, Math.min(100f, percent)) / 100f;
+    private float getEffectiveScaledVolume() {
+        float linear = (Math.max(0f, Math.min(100f, volumePercent)) / 100f) * masterScale * fadeFactor;
         return linear * linear;
     }
 

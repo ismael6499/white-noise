@@ -46,6 +46,17 @@
     <string name="timer_120m">2 Horas</string>
     <string name="timer_custom">Minutos personalizados</string>
     <string name="timer_cancel">Desactivar temporizador</string>
+    <string name="timer_short_15m">15m</string>
+    <string name="timer_short_30m">30m</string>
+    <string name="timer_short_45m">45m</string>
+    <string name="timer_short_60m">60m</string>
+    <string name="timer_short_90m">90m</string>
+    <string name="timer_short_120m">120m</string>
+    <string name="timer_also_set_sleep_alarm">Crear alarma en Sleep as Android</string>
+    <string name="timer_sleep_alarm_hint">Programa una alarma en Sleep al finalizar el timer</string>
+    <string name="timer_with_sleep_alarm_toast">Timer: %1$dm · Alarma Sleep a las %2$s</string>
+    <string name="timer_sleep_alarm_failed">Timer activo, pero no se pudo crear la alarma en Sleep</string>
+    <string name="timer_sleep_alarm_label_fmt">White Noise %1$dm #%2$d</string>
     <string name="notification_channel_name">Audio White Noise</string>
     <string name="notification_channel_desc">Control de reproducción y estado</string>
     <string name="notification_playing">Reproduciendo Sonidos</string>

@@ -18,10 +18,13 @@ public class TaskerReceiver extends BroadcastReceiver {
             serviceIntent.putExtras(intent.getExtras());
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent);
-        } else {
-            context.startService(serviceIntent);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent);
+            } else {
+                context.startService(serviceIntent);
+            }
+        } catch (RuntimeException ignored) {
         }
     }
 }

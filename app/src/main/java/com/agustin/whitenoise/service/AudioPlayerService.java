@@ -3,20 +3,33 @@ package com.agustin.whitenoise.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.AudioPlaybackConfiguration;
 import android.os.Binder;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import com.agustin.whitenoise.MainActivity;
 import com.agustin.whitenoise.R;
 import com.agustin.whitenoise.WhiteNoiseApp;
 import com.agustin.whitenoise.model.Preset;
 import com.agustin.whitenoise.model.SoundCatalog;
 import com.agustin.whitenoise.model.SoundItem;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AudioPlayerService extends Service {
@@ -29,33 +42,111 @@ public class AudioPlayerService extends Service {
     public static final String ACTION_SET_TRACK = "com.agustin.whitenoise.ACTION_SET_TRACK";
     public static final String ACTION_SET_TIMER = "com.agustin.whitenoise.ACTION_SET_TIMER";
     public static final String ACTION_CANCEL_TIMER = "com.agustin.whitenoise.ACTION_CANCEL_TIMER";
+    public static final String ACTION_SET_MASTER_VOLUME = "com.agustin.whitenoise.ACTION_SET_MASTER_VOLUME";
+    public static final String ACTION_ADJUST_MASTER_VOLUME = "com.agustin.whitenoise.ACTION_ADJUST_MASTER_VOLUME";
+    public static final String ACTION_SET_STOP_ON_DISMISS = "com.agustin.whitenoise.ACTION_SET_STOP_ON_DISMISS";
+
+    public static final String ACTION_SLEEP_ALARM_DISMISS = "com.urbandroid.sleep.alarmclock.ALARM_ALERT_DISMISS";
 
     public static final String BROADCAST_STATE_CHANGED = "com.agustin.whitenoise.STATE_CHANGED";
+    public static final String SLEEP_REMOTE_PACKAGE = "com.nitsutech.sleepremote";
+
+    public static final String PREFS_NAME = "WhiteNoisePrefs";
+    public static final String KEY_CUSTOM_PRESETS = "custom_presets";
+    public static final String KEY_MASTER_VOLUME = "master_volume";
+    public static final String KEY_STOP_ON_DISMISS = "stop_on_sleep_dismiss";
 
     public static final String EXTRA_TRACK = "track";
     public static final String EXTRA_ENABLED = "enabled";
     public static final String EXTRA_VOLUME = "volume";
+    public static final String EXTRA_DELTA = "delta";
     public static final String EXTRA_PRESET = "preset";
     public static final String EXTRA_MINUTES = "minutes";
 
     public static final String EXTRA_STATE_PLAYING = "is_playing";
+    public static final String EXTRA_STATE_HAS_ACTIVE = "has_active_tracks";
     public static final String EXTRA_STATE_ACTIVE_COUNT = "active_count";
     public static final String EXTRA_STATE_SUMMARY = "active_summary";
+    public static final String EXTRA_STATE_PRESET_ID = "active_preset_id";
     public static final String EXTRA_STATE_TIMER_MS = "timer_ms";
     public static final String EXTRA_STATE_TIMER_ACTIVE = "timer_active";
+    public static final String EXTRA_STATE_MASTER_VOLUME = "master_volume";
 
     private static final int NOTIFICATION_ID = 101;
     private static final long FADEOUT_DURATION_MS = 10_000L;
+
+    private static volatile AudioPlayerService activeInstance;
 
     private final IBinder binder = new LocalBinder();
     private final Map<String, SmoothAudioTrack> activeTracks = new HashMap<>();
     private final Map<String, Integer> volumes = new HashMap<>();
 
     private boolean isPlaying = false;
+    private int masterVolume = 100;
+    private String activePresetId = "";
     private CountDownTimer sleepTimer;
     private long timerRemainingMs = 0;
     private long timerTotalMs = 0;
     private boolean isTimerActive = false;
+    private boolean wasAlarmAudioPlaying = false;
+    private AudioManager audioManager;
+    private AudioManager.AudioPlaybackCallback alarmPlaybackCallback;
+
+    private final BroadcastReceiver sleepDismissReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && ACTION_SLEEP_ALARM_DISMISS.equals(intent.getAction())) {
+                if (loadStopOnDismiss(AudioPlayerService.this) && (isPlaying || !activeTracks.isEmpty())) {
+                    stopAll();
+                }
+            }
+        }
+    };
+
+    @Nullable
+    public static AudioPlayerService getInstance() {
+        return activeInstance;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        activeInstance = this;
+        masterVolume = 100;
+        saveMasterVolume(this, 100);
+        ContextCompat.registerReceiver(
+                this,
+                sleepDismissReceiver,
+                new IntentFilter(ACTION_SLEEP_ALARM_DISMISS),
+                ContextCompat.RECEIVER_EXPORTED
+        );
+        registerAlarmAudioMonitor();
+    }
+
+    private void registerAlarmAudioMonitor() {
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager == null) return;
+        alarmPlaybackCallback = new AudioManager.AudioPlaybackCallback() {
+            @Override
+            public void onPlaybackConfigChanged(List<AudioPlaybackConfiguration> configs) {
+                boolean alarmActive = false;
+                if (configs != null) {
+                    for (AudioPlaybackConfiguration cfg : configs) {
+                        if (cfg != null && cfg.getAudioAttributes() != null
+                                && cfg.getAudioAttributes().getUsage() == AudioAttributes.USAGE_ALARM) {
+                            alarmActive = true;
+                            break;
+                        }
+                    }
+                }
+                if (alarmActive && !wasAlarmAudioPlaying && isPlaying) {
+                    pauseAll();
+                }
+                wasAlarmAudioPlaying = alarmActive;
+            }
+        };
+        audioManager.registerAudioPlaybackCallback(alarmPlaybackCallback, new Handler(Looper.getMainLooper()));
+    }
 
     public class LocalBinder extends Binder {
         public AudioPlayerService getService() {
@@ -119,10 +210,23 @@ public class AudioPlayerService extends Service {
             case ACTION_CANCEL_TIMER:
                 cancelSleepTimer();
                 break;
+            case ACTION_SET_MASTER_VOLUME:
+                int targetVol = intent.getIntExtra(EXTRA_VOLUME, masterVolume);
+                setMasterVolume(targetVol);
+                break;
+            case ACTION_ADJUST_MASTER_VOLUME:
+                int delta = intent.getIntExtra(EXTRA_DELTA, 0);
+                setMasterVolume(masterVolume + delta);
+                break;
+            case ACTION_SET_STOP_ON_DISMISS:
+                boolean stopOnDismiss = intent.getBooleanExtra(EXTRA_ENABLED, false);
+                saveStopOnDismiss(this, stopOnDismiss);
+                break;
         }
     }
 
     public synchronized void setTrackState(String soundId, boolean enabled, int volume) {
+        activePresetId = "";
         volumes.put(soundId, volume);
         if (enabled) {
             SmoothAudioTrack track = activeTracks.get(soundId);
@@ -134,6 +238,7 @@ public class AudioPlayerService extends Service {
                 }
             }
             if (track != null) {
+                track.setMasterScale(masterVolume / 100f);
                 track.setVolume(volume);
                 if (!track.isPlaying()) {
                     track.start();
@@ -196,6 +301,7 @@ public class AudioPlayerService extends Service {
             }
         }
         activeTracks.clear();
+        activePresetId = "";
         isPlaying = false;
         stopForeground(true);
         stopSelf();
@@ -203,7 +309,7 @@ public class AudioPlayerService extends Service {
     }
 
     public synchronized void loadPresetAndPlay(String presetId) {
-        Preset preset = SoundCatalog.getBuiltInPreset(presetId);
+        Preset preset = findPresetById(presetId);
         if (preset == null || preset.getSoundVolumes().isEmpty()) {
             return;
         }
@@ -214,6 +320,7 @@ public class AudioPlayerService extends Service {
             }
         }
         activeTracks.clear();
+        activePresetId = preset.getId();
 
         // Start preset sounds with smooth loop tracks
         for (Map.Entry<String, Integer> entry : preset.getSoundVolumes().entrySet()) {
@@ -223,6 +330,7 @@ public class AudioPlayerService extends Service {
             SoundItem item = SoundCatalog.getSoundById(sid);
             if (item != null) {
                 SmoothAudioTrack track = new SmoothAudioTrack(this, sid, item.getRawResId(), vol);
+                track.setMasterScale(masterVolume / 100f);
                 track.start();
                 activeTracks.put(sid, track);
             }
@@ -230,6 +338,29 @@ public class AudioPlayerService extends Service {
         isPlaying = !activeTracks.isEmpty();
         updateForegroundState();
         broadcastState();
+    }
+
+    private Preset findPresetById(String presetId) {
+        if (presetId == null) return null;
+        Preset builtIn = SoundCatalog.getBuiltInPreset(presetId);
+        if (builtIn != null) return builtIn;
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_CUSTOM_PRESETS, null);
+        if (json == null || json.isEmpty()) return null;
+        try {
+            Type type = new TypeToken<List<Preset>>() {}.getType();
+            List<Preset> customList = new Gson().fromJson(json, type);
+            if (customList != null) {
+                for (Preset p : customList) {
+                    if (p != null && presetId.equals(p.getId())) {
+                        return p;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     public void startSleepTimer(int minutes) {
@@ -272,11 +403,50 @@ public class AudioPlayerService extends Service {
         timerRemainingMs = 0;
         // Restore standard volume in case it was in fadeout
         for (Map.Entry<String, SmoothAudioTrack> entry : activeTracks.entrySet()) {
-            int vol = volumes.getOrDefault(entry.getKey(), 70);
-            entry.getValue().setVolume(vol);
+            entry.getValue().applyExternalFadeFactor(1.0f);
         }
         updateForegroundState();
         broadcastState();
+    }
+
+    public synchronized void setMasterVolume(int vol) {
+        masterVolume = Math.max(0, Math.min(100, vol));
+        saveMasterVolume(this, masterVolume);
+        float scale = masterVolume / 100f;
+        for (SmoothAudioTrack track : activeTracks.values()) {
+            if (track != null) {
+                track.setMasterScale(scale);
+            }
+        }
+        broadcastState();
+    }
+
+    public static int loadMasterVolume(Context context) {
+        SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return Math.max(0, Math.min(100, prefs.getInt(KEY_MASTER_VOLUME, 100)));
+    }
+
+    public static void saveMasterVolume(Context context, int vol) {
+        int clamped = Math.max(0, Math.min(100, vol));
+        context.getApplicationContext()
+                .getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_MASTER_VOLUME, clamped)
+                .apply();
+    }
+
+    public static boolean loadStopOnDismiss(Context context) {
+        return context.getApplicationContext()
+                .getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .getBoolean(KEY_STOP_ON_DISMISS, false);
+    }
+
+    public static void saveStopOnDismiss(Context context, boolean enabled) {
+        context.getApplicationContext()
+                .getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_STOP_ON_DISMISS, enabled)
+                .apply();
     }
 
     private void applyFadeoutFactor(float factor) {
@@ -368,6 +538,18 @@ public class AudioPlayerService extends Service {
         return isPlaying;
     }
 
+    public boolean hasActiveTracks() {
+        return !activeTracks.isEmpty();
+    }
+
+    public String getActivePresetId() {
+        return activePresetId;
+    }
+
+    public int getMasterVolume() {
+        return masterVolume;
+    }
+
     public boolean isTrackActive(String soundId) {
         return activeTracks.containsKey(soundId);
     }
@@ -385,18 +567,61 @@ public class AudioPlayerService extends Service {
     }
 
     private void broadcastState() {
+        Intent localIntent = buildStateIntent(getPackageName());
+        sendBroadcast(localIntent);
+
+        Intent remoteIntent = buildStateIntent(SLEEP_REMOTE_PACKAGE);
+        sendBroadcast(remoteIntent);
+    }
+
+    private Intent buildStateIntent(String targetPackage) {
         Intent intent = new Intent(BROADCAST_STATE_CHANGED);
-        intent.setPackage(getPackageName());
+        intent.setPackage(targetPackage);
         intent.putExtra(EXTRA_STATE_PLAYING, isPlaying);
+        intent.putExtra(EXTRA_STATE_HAS_ACTIVE, !activeTracks.isEmpty());
         intent.putExtra(EXTRA_STATE_ACTIVE_COUNT, activeTracks.size());
         intent.putExtra(EXTRA_STATE_SUMMARY, getActiveSoundsSummary());
+        intent.putExtra(EXTRA_STATE_PRESET_ID, activePresetId != null ? activePresetId : "");
         intent.putExtra(EXTRA_STATE_TIMER_MS, timerRemainingMs);
         intent.putExtra(EXTRA_STATE_TIMER_ACTIVE, isTimerActive);
-        sendBroadcast(intent);
+        intent.putExtra(EXTRA_STATE_MASTER_VOLUME, masterVolume);
+        return intent;
+    }
+
+    public static void notifyExternalStateChanged(Context context) {
+        AudioPlayerService instance = activeInstance;
+        if (instance != null) {
+            instance.broadcastState();
+            return;
+        }
+        Intent remoteIntent = new Intent(BROADCAST_STATE_CHANGED);
+        remoteIntent.setPackage(SLEEP_REMOTE_PACKAGE);
+        remoteIntent.putExtra(EXTRA_STATE_PLAYING, false);
+        remoteIntent.putExtra(EXTRA_STATE_HAS_ACTIVE, false);
+        remoteIntent.putExtra(EXTRA_STATE_ACTIVE_COUNT, 0);
+        remoteIntent.putExtra(EXTRA_STATE_SUMMARY, context.getString(R.string.active_sounds_none));
+        remoteIntent.putExtra(EXTRA_STATE_PRESET_ID, "");
+        remoteIntent.putExtra(EXTRA_STATE_TIMER_MS, 0L);
+        remoteIntent.putExtra(EXTRA_STATE_TIMER_ACTIVE, false);
+        remoteIntent.putExtra(EXTRA_STATE_MASTER_VOLUME, loadMasterVolume(context));
+        context.sendBroadcast(remoteIntent);
     }
 
     @Override
     public void onDestroy() {
+        if (activeInstance == this) {
+            activeInstance = null;
+        }
+        try {
+            unregisterReceiver(sleepDismissReceiver);
+        } catch (IllegalArgumentException ignored) {
+        }
+        if (audioManager != null && alarmPlaybackCallback != null) {
+            try {
+                audioManager.unregisterAudioPlaybackCallback(alarmPlaybackCallback);
+            } catch (Exception ignored) {
+            }
+        }
         stopAll();
         super.onDestroy();
     }

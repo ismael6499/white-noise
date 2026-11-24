@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bg_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/layoutSleepAlarmOption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_sound_card"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSleepAlarm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/timer_also_set_sleep_alarm"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/timer_sleep_alarm_hint"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer15"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/timer_short_15m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer30"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="@string/timer_short_30m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer45"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="@string/timer_short_45m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer60"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/timer_short_60m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer90"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="@string/timer_short_90m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimer120"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="@string/timer_short_120m"
+            android:textColor="@color/text_primary"
+            app:strokeColor="@color/accent_blue" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimerCustom"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/timer_custom"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/chip_bg" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTimerDisable"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="@string/timer_cancel"
+            android:textColor="@color/danger"
+            app:strokeColor="@color/danger" />
+    </LinearLayout>
+</LinearLayout>

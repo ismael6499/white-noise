@@ -10,8 +10,8 @@ android {
         applicationId "com.agustin.whitenoise"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 6
+        versionName "1.2.2"
     }
 
     signingConfigs {
@@ -58,13 +58,6 @@ android.applicationVariants.all { variant ->
                 from output.outputFile
                 into mobileDropDir
                 rename { String fileName -> "WhiteNoise-v${variant.versionName}.apk" }
-                doLast {
-                    def genericFile = new File(mobileDropDir, "WhiteNoise.apk")
-                    def source = new File(mobileDropDir, "WhiteNoise-v${variant.versionName}.apk")
-                    if (source.exists()) {
-                        java.nio.file.Files.copy(source.toPath(), genericFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-                    }
-                }
             }
             variant.assembleProvider.get().finalizedBy(copyTask)
         }
