@@ -1,6 +1,17 @@
 # White Noise Mixer (Android)
 
-Clean native Android audio mixer app built with pure Java, Material Components, Foreground Media Service, seamless continuous looping, Sleep Timer with 10-second gentle fadeout, and full Tasker / automation BroadcastReceiver integration.
+Native Android ambient sound & white noise mixer built in Java with Material Components, a Foreground Media Service, seamless gapless crossfading loops, a Sleep Timer with a 10-second gentle fadeout, and Tasker / Sleep alarm automation support.
+
+---
+
+## Features
+
+- **31 Built-in Ambient Sounds** across nature, noise, and household categories with individual volume sliders.
+- **13 Relaxation Presets** plus custom user-saved mixes.
+- **Gapless Crossfading Engine** (`SmoothAudioTrack`) for continuous, click-free looping.
+- **Sleep Timer** with preset durations, custom minute input, and a 10-second gentle volume fadeout.
+- **Automation & Remote Control** via `TaskerReceiver` broadcasts and `WhiteNoiseControlProvider`, plus Sleep alarm audio pause/dismiss handling.
+- **Bilingual UI** in English and Spanish (`values` / `values-es`).
 
 ---
 
@@ -64,3 +75,27 @@ The app exposes `com.agustin.whitenoise.receiver.TaskerReceiver` which accepts s
 ## Sound Catalog (31 Tracks)
 
 `sailing`, `sea_side`, `rain`, `thunder`, `wind`, `water_stream`, `fireplace`, `leaves`, `fountain`, `shower`, `summer_night`, `cicadas`, `bird`, `frogs`, `whales`, `wolves`, `white_noise`, `pink_noise`, `brown_noise`, `fan`, `music_box`, `piano`, `wind_chimes`, `train`, `car`, `crowd`, `keyboard`, `washing_machine`, `vacuum_cleaner`, `hair_dryer`, `shush`.
+
+---
+
+## Building from Source
+
+1. Clone the repository and open it in Android Studio (or build via Gradle with JDK 17 and Android SDK 34).
+2. Debug builds work out of the box with `./gradlew assembleDebug`.
+3. For custom/release signing, configure `local.properties` (or environment variables `SIGNING_STORE_FILE`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`):
+   ```properties
+   signing.storeFile=keystore.jks
+   signing.storePassword=your_store_password
+   signing.keyAlias=your_key_alias
+   signing.keyPassword=your_key_password
+   ```
+4. Build the release APK:
+   ```bash
+   ./gradlew assembleRelease
+   ```
+
+---
+
+## License
+
+Licensed under the [MIT License](LICENSE).
