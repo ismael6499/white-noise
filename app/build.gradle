@@ -2,6 +2,17 @@ plugins {
     id 'com.android.application'
 }
 
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+def signingStoreFilePath = localProps.getProperty("signing.storeFile") ?: System.getenv("SIGNING_STORE_FILE")
+def signingStorePassword = localProps.getProperty("signing.storePassword") ?: System.getenv("SIGNING_STORE_PASSWORD")
+def signingKeyAlias = localProps.getProperty("signing.keyAlias") ?: System.getenv("SIGNING_KEY_ALIAS")
+def signingKeyPassword = localProps.getProperty("signing.keyPassword") ?: System.getenv("SIGNING_KEY_PASSWORD")
+def hasCustomSigning = signingStoreFilePath && signingStorePassword && signingKeyAlias && signingKeyPassword && file(signingStoreFilePath).exists()
+
 android {
     namespace 'com.agustin.whitenoise'
     compileSdk 34
@@ -15,20 +26,26 @@ android {
     }
 
     signingConfigs {
-        appSign {
-            storeFile file("keystore.jks")
-            storePassword "whitenoise"
-            keyAlias "whitenoise"
-            keyPassword "whitenoise"
+        if (hasCustomSigning) {
+            appSign {
+                storeFile file(signingStoreFilePath)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
         }
     }
 
     buildTypes {
         debug {
-            signingConfig signingConfigs.appSign
+            if (hasCustomSigning) {
+                signingConfig signingConfigs.appSign
+            }
         }
         release {
-            signingConfig signingConfigs.appSign
+            if (hasCustomSigning) {
+                signingConfig signingConfigs.appSign
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
